@@ -1,0 +1,30 @@
+/Initialize the python function for the loss evaluation
+$IF %COMPARE(&TIMESTEP_STAGE&,INIT)==0
+    /$EXEC program=python arguments=textgraphing.py arguments+='testcoil.log' -Wait
+
+    $Python command=import field_logging as log
+    $PYTHON COMMAND=operafea.registerHookCallback('on_timestep_end',log.onTimeStepEnd)
+    $PYTHON COMMAND=operafea.registerHookCallback('on_solver_end',log.onSolverEnd)
+$end if
+
+
+  / attach functions to appropriate python hooks.
+  /$PYTHON COMMAND=operafea.registerHookCallback('on_solver_end',log.onSolverEnd)
+
+  / Set the solution tolerance to 
+  /$const #ITSOLVTOL 1e-6
+
+
+/++ / Control commands for the group Rotor
+/++ $string RO_MOTIONCONTROL SPEED
+/++ $constant #RO_OMEGAZ #RPM*2*PI/60
+/++ 
+/++ / Control commands for the group Stator
+/++ $string ST_MOTIONCONTROL STATIONARY
+/++ 
+/++ / Change the solution tolerance for the first electric periode
+/++ $if ttime>=#elperiod
+/++   $string itsolvtol '1e-8'
+/++   $const #ITSOLVTOL 1e-8
+/++ $end if
+/++ 
